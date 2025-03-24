@@ -2,7 +2,7 @@ import os
 import tempfile
 import pyaudio
 import wave
-import ollama
+import requests
 from gtts import gTTS
 import assemblyai as aai  # AssemblyAI for speech-to-text
 import numpy as np
@@ -10,9 +10,10 @@ import random
 
 class Zeno:
     def __init__(self) -> None:
-        """Initialize the AI assistant with AssemblyAI for speech recognition and Llama 3 for responses."""
+        """Initialize the AI assistant with AssemblyAI for speech recognition and Groq API for responses."""
         # Set up AssemblyAI
         aai.settings.api_key = "ddad5326519041a3a1b63877c7c95e83"  # Replace with your AssemblyAI API key
+        self.api_key = "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"  # Replace with your Groq API key
         self.full_transcript = [
             {"role": "system", "content": "You are Zeno, an AI assistant. Answer only based on the user's input and maintain a continuous conversation."}
         ]
@@ -68,7 +69,7 @@ class Zeno:
         return transcript.text.strip()
 
     def generate_ai_response(self, text):
-        """Generate response based on conversation history and make it sound natural."""
+        """Generate response using Groq API."""
         if not text:
             print("No text detected. Please speak again.")
             return
@@ -76,17 +77,26 @@ class Zeno:
         self.full_transcript.append({"role": "user", "content": text})
         print(f"👤 You: {text}")
 
-        ollama_response = ollama.chat(
-            model="llama3",
-            messages=self.full_transcript,  # Keeps past messages for context
-            stream=False,
-        )
+        url = "https://api.groq.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gemma-7b-it",  # Replace with the appropriate Groq model
+            "messages": self.full_transcript,
+            "temperature": 0.7,
+            "max_tokens": 150
+        }
 
-        full_text = ollama_response["message"]["content"].strip()
+        response = requests.post(url, headers=headers, json=payload)
+        if response.status_code == 200:
+            full_text = response.json()["choices"][0]["message"]["content"].strip()
+        else:
+            full_text = "I'm having trouble connecting to Groq right now."
 
-        # Make the response sound more natural
+        # Make response sound more natural
         natural_text = self.make_it_sound_real(full_text)
-
         self.full_transcript.append({"role": "assistant", "content": natural_text})
 
         print(f"🤖 Zeno: {natural_text}")
