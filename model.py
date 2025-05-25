@@ -14,7 +14,7 @@ class Zeno:
     def __init__(self) -> None:
         """Initialize the AI assistant with AssemblyAI for speech recognition and Groq API for responses."""
         # Set up AssemblyAI
-        aai.settings.api_key = "ddad5326519041a3a1b63877c7c95e83"  # Replace with your actual API key
+        aai.settings.api_key = ""  # Replace with your actual API key
         self.transcriber = aai.Transcriber()
 
         # Initialize text-to-speech
